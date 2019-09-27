@@ -71,6 +71,12 @@ reg		[12:0]	mCCD_G;
 reg		[11:0]	mCCD_B;
 reg				mDVAL;
 
+wire [11:0] gray;
+assign gray = (mCCD_R[11:0] + mCCD_G[12:1] + mCCD_B[11:0]) / 3;
+
+Shift_Register sr(.iCLK(iCLK), .iRST(iRST), .iDVAL(oDVAL), .grayVal(gray), .oDVAL(rDVAL), .oDATA(o_data));
+
+
 assign	oRed	=	mCCD_R[11:0];
 assign	oGreen	=	mCCD_G[12:1];
 assign	oBlue	=	mCCD_B[11:0];
