@@ -266,6 +266,21 @@ assign	D5M_RESET_N	=	DLY_RST_1;
 
 assign   VGA_CTRL_CLK = VGA_CLK;
 
+/*
+reg [23:0] dval_cnt, f_cnt;
+always @(posedge sCCD_DVAL, negedge DLY_RST_1)
+  if(!DLY_RST_1) begin
+    dval_cnt <= 0;
+	f_cnt <= 0;
+  end
+  else if(dval_cnt >= 307199) begin
+    dval_cnt <= 0;
+	f_cnt <= f_cnt + 1;
+  end
+  else
+    dval_cnt <= dval_cnt + 1;
+*/
+
 assign	LEDR		=	Y_Cont;
 
 //fetch the high 8 bits
@@ -321,7 +336,8 @@ RAW2RGB				u4	(
 							.oBlue(sCCD_B),
 							.oDVAL(sCCD_DVAL),
 							.iX_Cont(X_Cont),
-							.iY_Cont(Y_Cont)
+							.iY_Cont(Y_Cont),
+							.iCTRL({SW[3:1]})
 						   );
 
 //Frame count display

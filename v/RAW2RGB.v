@@ -49,7 +49,8 @@ module RAW2RGB(	oRed,
 				iDATA,
 				iDVAL,
 				iCLK,
-				iRST
+				iRST,
+				iCTRL
 				);
 
 input	[10:0]	iX_Cont;
@@ -58,10 +59,12 @@ input	[11:0]	iDATA;
 input			iDVAL;
 input			iCLK;
 input			iRST;
+input	[2:0]	iCTRL;
 output	[11:0]	oRed;
 output	[11:0]	oGreen;
 output	[11:0]	oBlue;
 output			oDVAL;
+
 wire	[11:0]	mDATA_0;
 wire	[11:0]	mDATA_1;
 reg		[11:0]	mDATAd_0;
@@ -71,16 +74,19 @@ reg		[12:0]	mCCD_G;
 reg		[11:0]	mCCD_B;
 reg				mDVAL;
 
+wire sr_oDVAL, RGB_oDVAL;
+
 wire [11:0] gray, o_data;
 assign gray = (mCCD_R[11:0] + mCCD_G[12:1] + mCCD_B[11:0]) / 3;
 
-Shift_Register sr(.iCLK(iCLK), .iRST(iRST), .iDVAL(oDVAL), .grayVal(gray), .oDVAL(oDVAL), .oDATA(o_data), .iX(iX_Cont[10:1]), .iY(iY_Cont[10:1]));
+Shift_Register sr(.iCLK(iCLK), .iRST(iRST), .iDVAL(RGB_oDVAL), .grayVal(gray), .oDVAL(sr_oDVAL), .oDATA(o_data), .iX(iX_Cont[10:1]), .iY(iY_Cont[10:1]), .iFilter(iCTRL[2]));
 
 
-assign	oRed	=	o_data;//mCCD_R[11:0];
-assign	oGreen	=	o_data;//mCCD_G[12:1];
-assign	oBlue	=	o_data;//mCCD_B[11:0];
-//assign	oDVAL	=	mDVAL;
+assign	oRed	=	iCTRL[1] ? o_data : iCTRL[0] ? gray : mCCD_R[11:0];
+assign	oGreen	=	iCTRL[1] ? o_data : iCTRL[0] ? gray : mCCD_G[12:1];
+assign	oBlue	=	iCTRL[1] ? o_data : iCTRL[0] ? gray : mCCD_B[11:0];
+assign RGB_oDVAL = mDVAL;
+assign	oDVAL	=	iCTRL[1] ? sr_oDVAL : RGB_oDVAL;
 
 Line_Buffer1 	u0	(	.clken(iDVAL),
 						.clock(iCLK),

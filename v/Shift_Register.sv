@@ -5,6 +5,7 @@ module Shift_Register(
 	input [9:0] iX,
 	input [9:0] iY,
 	input [11:0] grayVal,
+	input iFilter,
 	output oDVAL,
 	output [11:0] oDATA
 	);
@@ -16,10 +17,10 @@ reg signed [19:0] TARG_cnt;
 
 integer i;
 
-always_ff @(posedge iCLK, negedge iRST)
+always_ff @(posedge iDVAL, negedge iRST)
   if(!iRST)
     shift_reg <= '{default:0};
-  else if(iDVAL) begin
+  else begin//if(iDVAL) begin
     for (i=1281; i > 0; i--) begin
       shift_reg[i] <= shift_reg[i-1];
     end
@@ -37,10 +38,10 @@ always_ff @(posedge iCLK, negedge iRST)
 assign PXL_cnt = (iY * 640) + iX;
 
 
-always_ff @(posedge iCLK, negedge iRST)
+always_ff @(posedge iDVAL, negedge iRST)
   if(!iRST)
     TARG_cnt <= -20'd641;
-  else if(iDVAL) begin
+  else begin //if(iDVAL) begin
     TARG_cnt <= TARG_cnt + 1;
 	if (TARG_cnt >= 20'd307199)
 		TARG_cnt <= PXL_cnt - 20'd641;
@@ -126,14 +127,20 @@ assign sobel_h[2][1] = -2;
 assign sobel_h[2][0] = -1;
 */
 wire signed [11:0] data;
-assign data = 
+assign data = iFilter ? 
   kernel[0][0] -
   kernel[0][2] +
   (kernel[1][0] << 1) -
   (kernel[1][2] << 1) +
   kernel[2][0] -
+  kernel[2][2] :
+  kernel[0][0] +
+  (kernel[0][1] << 1) +
+  kernel[0][2] -
+  kernel[2][0] -
+  (kernel[2][1] << 1) -
   kernel[2][2];
   
-assign oDATA = shift_reg[640];//data < 0 ? -data : data; 
+assign oDATA = data < 0 ? -data : data; 
 
 endmodule
