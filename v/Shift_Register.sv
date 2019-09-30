@@ -104,8 +104,8 @@ assign kernel[0][0] = edge_S && edge_E ? shift_reg[640] :
 					  edge_S ? shift_reg[639] :
 					  edge_E ? shift_reg[0] :
 					  grayVal;
-/*
-wire signed [2:0] sobel_v [2:0][2:0], sobel_h[2:0][2:0];
+
+/*wire signed [2:0] sobel_v [2:0][2:0], sobel_h[2:0][2:0];
 assign sobel_v[0][2] = -1;
 assign sobel_v[0][1] = 0;
 assign sobel_v[0][0] = 1;
@@ -125,7 +125,29 @@ assign sobel_h[1][0] = 0;
 assign sobel_h[2][2] = -1;
 assign sobel_h[2][1] = -2;
 assign sobel_h[2][0] = -1;
+
+
+wire [12:0] data, data_v, data_h;
+assign data_v = 
+  kernel[0][0] * sobel_v[0][0] +
+  kernel[0][2] * sobel_v[0][2] +
+  kernel[1][0] * sobel_v[1][0] +
+  kernel[1][2] * sobel_v[1][2] +
+  kernel[2][0] * sobel_v[2][0] +
+  kernel[2][2] * sobel_v[2][2] ;
+
+assign data_h =
+  kernel[0][0] * sobel_h[0][0] +
+  kernel[0][1] * sobel_h[0][1] +
+  kernel[0][2] * sobel_h[0][2] +
+  kernel[2][0] * sobel_h[2][0] +
+  kernel[2][1] * sobel_h[2][1] +
+  kernel[2][2] * sobel_h[2][2] ;
+
+assign data = iFilter? data_v: data_h;
 */
+
+
 wire signed [11:0] data;
 assign data = iFilter ? 
   kernel[0][0] -
@@ -140,7 +162,8 @@ assign data = iFilter ?
   kernel[2][0] -
   (kernel[2][1] << 1) -
   kernel[2][2];
-  
-assign oDATA = data < 0 ? -data : data; 
+
+
+assign oDATA = data[11] ? -data : data; 
 
 endmodule
