@@ -77,7 +77,7 @@ reg				mDVAL;
 wire sr_oDVAL, RGB_oDVAL;
 
 wire [11:0] gray, o_data;
-assign gray = (mCCD_R[11:0] + mCCD_G[12:1] + mCCD_B[11:0]) / 3;
+assign gray = (mCCD_R[11:0] + mCCD_G[12:0] + mCCD_B[11:0]) / 4;
 
 Shift_Register sr(.iCLK(iCLK), .iRST(iRST), .iDVAL(RGB_oDVAL), .grayVal(gray), .oDVAL(sr_oDVAL), .oDATA(o_data), .iX(iX_Cont[10:1]), .iY(iY_Cont[10:1]), .iFilter(iCTRL[2]));
 

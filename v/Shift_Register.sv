@@ -10,21 +10,27 @@ module Shift_Register(
 	output [11:0] oDATA
 	);
 
-reg [11:0] shift_reg[1281:0];
+/* reg [11:0] shift_reg[1281:0];
+ */
+
+logic [1281:0][11:0]shift_reg;
 
 wire unsigned [18:0] PXL_cnt;
 reg signed [19:0] TARG_cnt;
 
 integer i;
 
-always_ff @(posedge iDVAL, negedge iRST)
+always_ff @(posedge iCLK, negedge iRST)
   if(!iRST)
     shift_reg <= '{default:0};
-  else begin//if(iDVAL) begin
-    for (i=1281; i > 0; i--) begin
+  else if(iDVAL) begin
+    /* for (i=1281; i > 0; i--) begin
       shift_reg[i] <= shift_reg[i-1];
-    end
-    shift_reg[0] <= grayVal;
+    end 
+	shift_reg[0] <= grayVal;
+	*/
+	shift_reg <= {shift_reg[1280:0], grayVal};
+    
   end
 
 /* always_ff @(posedge iCLK, negedge iRST)
@@ -38,12 +44,12 @@ always_ff @(posedge iDVAL, negedge iRST)
 assign PXL_cnt = (iY * 640) + iX;
 
 
-always_ff @(posedge iDVAL, negedge iRST)
+always_ff @(posedge iCLK, negedge iRST)
   if(!iRST)
     TARG_cnt <= -20'd641;
-  else begin //if(iDVAL) begin
+  else if(iDVAL) begin
     TARG_cnt <= TARG_cnt + 1;
-	if (TARG_cnt >= 20'd307199)
+	if (TARG_cnt > 20'd307199)
 		TARG_cnt <= PXL_cnt - 20'd641;
   end
 
@@ -69,6 +75,7 @@ reg signed [10:0] X, Y;
 /* assign oDVAL = (X < 0 || Y < 0) ? 0 :
   ((X > 10'd638 && Y == 10'd478) || Y == 10'd479) ? 1 :
   iDVAL; */
+
 assign oDVAL = TARG_cnt < 0 ? 0 : iDVAL;
 
 
@@ -149,6 +156,7 @@ assign data = iFilter? data_v: data_h;
 
 
 wire signed [11:0] data;
+
 assign data = iFilter ? 
   kernel[0][0] -
   kernel[0][2] +
@@ -162,8 +170,30 @@ assign data = iFilter ?
   kernel[2][0] -
   (kernel[2][1] << 1) -
   kernel[2][2];
+  
 
 
-assign oDATA = data[11] ? -data : data; 
+/*
+wire signed [15:0] data;
+assign data = iFilter ? 
+  {4'b0,kernel[0][0]} -
+  {4'b0,kernel[0][2]} +
+  {3'b0,kernel[1][0],1'b0} -
+  {3'b0,kernel[1][2],1'b0} +
+  {4'b0,kernel[2][0]} -
+  {4'b0,kernel[2][2]} :
+  {4'b0,kernel[0][0]} +
+  {3'b0,kernel[0][1],1'b0} +
+  {4'b0,kernel[0][2]} -
+  {4'b0,kernel[2][0]} -
+  {3'b0,kernel[2][1],1'b0} -
+  {4'b0,kernel[2][2]};
+  
+wire [11:0] data_sat;
+assign data_sat = data[15] ? 
+					&data[15:11] ? -data[11:0] : 12'hFFF :
+				  |data[14:12] ? 12'hFFF : data[11:0];
+*/
 
+assign oDATA = data < 0 ? -data : data;
 endmodule
