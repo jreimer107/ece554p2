@@ -76,12 +76,22 @@ reg				mDVAL;
 
 wire sr_oDVAL, RGB_oDVAL;
 
+// Grayscale value is average of four RGB values
 wire [11:0] gray, o_data;
 assign gray = (mCCD_R[11:0] + mCCD_G[12:0] + mCCD_B[11:0]) / 4;
 
-Shift_Register sr(.iCLK(iCLK), .iRST(iRST), .iDVAL(RGB_oDVAL), .grayVal(gray), .oDVAL(sr_oDVAL), .oDATA(o_data), .iX(iX_Cont[10:1]), .iY(iY_Cont[10:1]), .iFilter(iCTRL[2]));
+// Convoltution handler
+Shift_Register sr(.iCLK(iCLK), 
+				.iRST(iRST), 
+				.iDVAL(RGB_oDVAL), 
+				.grayVal(gray), 
+				.oDVAL(sr_oDVAL), 
+				.oDATA(o_data), 
+				.iX(iX_Cont[10:1]), 
+				.iY(iY_Cont[10:1]), 
+				.iFilter(iCTRL[2])	);
 
-
+// Assign RGB outputs based on switch inputs
 assign	oRed	=	iCTRL[1] ? o_data : iCTRL[0] ? gray : mCCD_R[11:0];
 assign	oGreen	=	iCTRL[1] ? o_data : iCTRL[0] ? gray : mCCD_G[12:1];
 assign	oBlue	=	iCTRL[1] ? o_data : iCTRL[0] ? gray : mCCD_B[11:0];
